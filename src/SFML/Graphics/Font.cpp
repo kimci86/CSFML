@@ -58,12 +58,12 @@ sfFont* sfFont_createFromStream(sfInputStream* stream)
 {
     CSFML_CHECK_RETURN(stream, nullptr);
 
-    CallbackStream sfmlStream(stream);
-    auto font = sf::Font::loadFromStream(sfmlStream);
+    auto sfmlStream = std::make_shared<CallbackStream>(stream);
+    auto font = sf::Font::loadFromStream(*sfmlStream);
     if (!font)
         return nullptr;
 
-    return new sfFont{std::move(*font), {}, sfmlStream};
+    return new sfFont{std::move(*font), {}, std::move(sfmlStream)};
 }
 
 
