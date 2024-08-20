@@ -39,6 +39,22 @@ catch_discover_tests(test-csfml-window)
 
 # Copy DLLs into the same directory
 if(SFML_OS_WINDOWS AND NOT CSFML_LINK_SFML_STATICALLY)
-    add_custom_command(TARGET test-csfml-system PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:test-csfml-system> $<TARGET_FILE_DIR:test-csfml-system> COMMAND_EXPAND_LISTS)
-    add_custom_command(TARGET test-csfml-window PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:test-csfml-window> $<TARGET_FILE_DIR:test-csfml-window> COMMAND_EXPAND_LISTS)
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/copy-dlls.stamp
+        COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_RUNTIME_DLLS:test-csfml-system>
+            $<TARGET_RUNTIME_DLLS:test-csfml-window>
+            ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/copy-dlls.stamp
+        DEPENDS
+            $<TARGET_RUNTIME_DLLS:test-csfml-system>
+            $<TARGET_RUNTIME_DLLS:test-csfml-window>
+        COMMENT "Copying DLLs for CSFML tests"
+        VERBATIM
+        COMMAND_EXPAND_LISTS
+    )
+    add_custom_target(copy-dlls-for-tests DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/copy-dlls.stamp)
+
+    add_dependencies(test-csfml-system copy-dlls-for-tests)
+    add_dependencies(test-csfml-window copy-dlls-for-tests)
 endif()
